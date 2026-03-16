@@ -34,7 +34,7 @@
     </PropertyGroup>
     <PropertyGroup Condition="$(Configuration.Contains('R24'))">
         <RevitVersion>2024</RevitVersion>
-        <TargetFramework>net48</TargetFramework>
+        <TargetFramework>net481</TargetFramework>
         <OutputPath>bin\$(Configuration.Split(' ')[0])\$(RevitVersion)\</OutputPath>
     </PropertyGroup>
     <PropertyGroup Condition="$(Configuration.Contains('R25'))">

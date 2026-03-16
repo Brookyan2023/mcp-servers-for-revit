@@ -18,7 +18,7 @@ namespace revit_mcp_plugin.Core
             pushButtonData.ToolTip = "Open / Close mcp server";
             pushButtonData.Image = new BitmapImage(new Uri("/RevitMCPPlugin;component/Core/Ressources/icon-16.png", UriKind.RelativeOrAbsolute));
             pushButtonData.LargeImage = new BitmapImage(new Uri("/RevitMCPPlugin;component/Core/Ressources/icon-32.png", UriKind.RelativeOrAbsolute));
-            mcpPanel.AddItem(pushButtonData);
+            PushButton toggleButton = mcpPanel.AddItem(pushButtonData) as PushButton;
 
             PushButtonData mcp_settings_pushButtonData = new PushButtonData("ID_EXCMD_MCP_SETTINGS", "Settings",
                 Assembly.GetExecutingAssembly().Location, "revit_mcp_plugin.Core.Settings");
@@ -26,6 +26,17 @@ namespace revit_mcp_plugin.Core
             mcp_settings_pushButtonData.Image = new BitmapImage(new Uri("/RevitMCPPlugin;component/Core/Ressources/settings-16.png", UriKind.RelativeOrAbsolute));
             mcp_settings_pushButtonData.LargeImage = new BitmapImage(new Uri("/RevitMCPPlugin;component/Core/Ressources/settings-32.png", UriKind.RelativeOrAbsolute));
             mcpPanel.AddItem(mcp_settings_pushButtonData);
+
+            TextBoxData statusTextBoxData = new TextBoxData("ID_MCP_STATUS_TEXTBOX");
+            statusTextBoxData.Name = "MCP Status";
+            TextBox statusTextBox = mcpPanel.AddItem(statusTextBoxData) as TextBox;
+            if (statusTextBox != null)
+            {
+                statusTextBox.Value = "MCP: Closed";
+                statusTextBox.ToolTip = "MCP server status";
+            }
+
+            RibbonUiState.Initialize(toggleButton, statusTextBox);
 
             return Result.Succeeded;
         }
