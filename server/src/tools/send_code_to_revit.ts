@@ -1,8 +1,22 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { withRevitConnection } from "../utils/ConnectionManager.js";
+import {
+  getDeveloperModeBlockReason,
+  getDeveloperModeStatePath,
+  validateCodeExecutionRequest,
+} from "../utils/developerMode.js";
 
 export function registerSendCodeToRevitTool(server: McpServer) {
+  const parameterValueSchema = z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.null(),
+    z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])),
+    z.object({}).passthrough(),
+  ]);
+
   server.tool(
     "send_code_to_revit",
     "Send C# code to Revit for execution. The code will be inserted into a template with access to the Revit Document and parameters. Your code should be written to work within the Execute method of the template.",
@@ -13,21 +27,37 @@ export function registerSendCodeToRevitTool(server: McpServer) {
           "The C# code to execute in Revit. This code will be inserted into the Execute method of a template with access to Document and parameters."
         ),
       parameters: z
-        .array(
-          z.union([
-            z.string(),
-            z.number(),
-            z.boolean(),
-            z.null(),
-            z.object({}).passthrough(),
-          ])
-        )
+        .array(parameterValueSchema)
         .optional()
         .describe(
           "Optional execution parameters that will be passed to your code"
         ),
     },
     async (args, extra) => {
+      const modeBlockReason = getDeveloperModeBlockReason();
+      if (modeBlockReason) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Code execution blocked: ${modeBlockReason}`,
+            },
+          ],
+        };
+      }
+
+      const requestBlockReason = validateCodeExecutionRequest(args.code);
+      if (requestBlockReason) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Code execution blocked: ${requestBlockReason}`,
+            },
+          ],
+        };
+      }
+
       const params = {
         code: args.code,
         parameters: args.parameters || [],
@@ -57,7 +87,7 @@ export function registerSendCodeToRevitTool(server: McpServer) {
               type: "text",
               text: `Code execution failed: ${
                 error instanceof Error ? error.message : String(error)
-              }`,
+              }\nDeveloper mode state file: ${getDeveloperModeStatePath()}`,
             },
           ],
         };

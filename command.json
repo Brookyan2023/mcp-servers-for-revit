@@ -34,6 +34,46 @@
       "assemblyPath": "RevitMCPCommandSet.dll"
     },
     {
+      "commandName": "get_document_info",
+      "description": "Return current document metadata and active view context",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "list_categories",
+      "description": "List available document categories",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "list_views",
+      "description": "List views in the current document",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "get_element_details",
+      "description": "Return detailed metadata for a single element",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "get_element_parameters",
+      "description": "List parameters for an element",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "set_element_parameter",
+      "description": "Set a writable parameter on an element",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "list_levels",
+      "description": "List levels in the current document",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "list_wall_types",
+      "description": "List wall types in the current document",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
       "commandName": "create_point_based_element",
       "description": "Create point-based elements like furniture",
       "assemblyPath": "RevitMCPCommandSet.dll"
@@ -121,6 +161,11 @@
     {
       "commandName": "create_dimensions",
       "description": "Create dimension annotations between elements or points in the current view",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "tag_selected_doors",
+      "description": "Create and place door tags only on selected doors in the current view",
       "assemblyPath": "RevitMCPCommandSet.dll"
     }
   ]
