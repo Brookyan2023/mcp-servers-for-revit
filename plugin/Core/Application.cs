@@ -27,6 +27,8 @@ namespace revit_mcp_plugin.Core
             mcp_settings_pushButtonData.LargeImage = new BitmapImage(new Uri("/RevitMCPPlugin;component/Core/Ressources/settings-32.png", UriKind.RelativeOrAbsolute));
             mcpPanel.AddItem(mcp_settings_pushButtonData);
 
+            // Auto Millwork Sheet is now provided by the BIMEfficientTool add-in.
+
             TextBoxData statusTextBoxData = new TextBoxData("ID_MCP_STATUS_TEXTBOX");
             statusTextBoxData.Name = "MCP Status";
             TextBox statusTextBox = mcpPanel.AddItem(statusTextBoxData) as TextBox;
