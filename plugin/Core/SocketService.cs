@@ -80,11 +80,14 @@ namespace revit_mcp_plugin.Core
 
             //// 从配置中读取服务端口
             //// Read the service port from the configuration.
-            //if (configManager.Config.Settings.Port > 0)
-            //{
-            //    _port = configManager.Config.Settings.Port;
-            //}
-            _port = 8080; // 固定端口号 - Hard-wired port number.
+            if (configManager.Config?.Settings?.Port > 0)
+            {
+                _port = configManager.Config.Settings.Port;
+            }
+            else
+            {
+                _port = 0; // 0 = auto-select a free port.
+            }
 
             // 加载命令
             // Load command.
@@ -105,15 +108,33 @@ namespace revit_mcp_plugin.Core
                 _listener = new TcpListener(IPAddress.Any, _port);
                 _listener.Start();
 
+                if (_port == 0 && _listener.LocalEndpoint is IPEndPoint endPoint)
+                {
+                    _port = endPoint.Port;
+                }
+
+                WritePortStateFile();
+
                 _listenerThread = new Thread(ListenForClients)
                 {
                     IsBackground = true
                 };
                 _listenerThread.Start();              
             }
-            catch (Exception)
+            catch (SocketException ex)
             {
                 _isRunning = false;
+                _logger?.Error("Failed to start MCP socket server on port {0}: {1}", _port, ex.Message);
+                throw new InvalidOperationException(
+                    $"Failed to start MCP server on port {_port}. The port may be in use or blocked by a firewall.",
+                    ex
+                );
+            }
+            catch (Exception ex)
+            {
+                _isRunning = false;
+                _logger?.Error("Failed to start MCP socket server: {0}", ex.Message);
+                throw;
             }
         }
 
@@ -136,6 +157,26 @@ namespace revit_mcp_plugin.Core
             catch (Exception)
             {
                 // log error
+            }
+        }
+
+        private void WritePortStateFile()
+        {
+            try
+            {
+                var state = new
+                {
+                    port = _port,
+                    updatedAtUtc = DateTime.UtcNow.ToString("o")
+                };
+
+                string statePath = PathManager.GetPortStateFilePath();
+                string json = JsonConvert.SerializeObject(state, Formatting.Indented);
+                File.WriteAllText(statePath, json);
+            }
+            catch (Exception ex)
+            {
+                _logger?.Warning("Failed to write MCP port state file: {0}", ex.Message);
             }
         }
 

@@ -41,6 +41,26 @@ namespace revit_mcp_plugin.Utils
             return logsDirectory;
         }
         /// <summary>
+        /// Gets the shared state directory for data accessed by both the plugin and MCP server.
+        /// </summary>
+        public static string GetSharedStateDirectoryPath()
+        {
+            string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            string sharedDirectory = Path.Combine(appData, "RevitMCP");
+
+            EnsureDirectoryExists(sharedDirectory);
+
+            return sharedDirectory;
+        }
+        /// <summary>
+        /// Gets the path to the port state file shared with the MCP server.
+        /// </summary>
+        public static string GetPortStateFilePath()
+        {
+            string sharedDirectory = GetSharedStateDirectoryPath();
+            return Path.Combine(sharedDirectory, "revit-mcp-port.json");
+        }
+        /// <summary>
         /// Gets the path to the command registry file.
         /// If the file doesn't exist, creates it with default content.
         /// </summary>
@@ -66,7 +86,11 @@ namespace revit_mcp_plugin.Utils
         {
             try
             {
-                var defaultRegistry = new { commands = new object[] { } };
+                var defaultRegistry = new
+                {
+                    commands = new object[] { },
+                    settings = new { logLevel = "Info", port = 0 }
+                };
                 string jsonContent = JsonConvert.SerializeObject(defaultRegistry, Formatting.Indented);
 
                 File.WriteAllText(filePath, jsonContent);
