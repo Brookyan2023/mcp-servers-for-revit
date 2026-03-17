@@ -4,6 +4,8 @@
 server/build/
 server/node_modules/
 server/revit-data.db
+dist/
+installer/
 
 # =============================================================================
 # Visual Studio / .NET (plugin/ and commandset/)
