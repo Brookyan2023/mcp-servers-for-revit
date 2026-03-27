@@ -164,6 +164,76 @@
       "assemblyPath": "RevitMCPCommandSet.dll"
     },
     {
+      "commandName": "get_family_view_info",
+      "description": "Return active family editor view metadata and document context",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "create_detail_family",
+      "description": "Create a new family document from a .rft template and activate it",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "add_family_parameters",
+      "description": "Add type or instance parameters to the active family document",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "add_reference_planes",
+      "description": "Create named reference planes in the active family document",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "list_line_styles",
+      "description": "List available line styles in the active document",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "draw_detail_lines",
+      "description": "Draw detail lines in the active family editor view",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "draw_detail_arc",
+      "description": "Draw detail arcs in the active family editor view",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "draw_filled_region",
+      "description": "Create filled regions in the active family editor view",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "save_family",
+      "description": "Save the active family document",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "load_family_into_project",
+      "description": "Load a family into an open project document",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "close_family_doc",
+      "description": "Close the active family document and return to a project",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "add_detail_text",
+      "description": "Create text annotations in the active family view",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "add_family_dimension",
+      "description": "Create dimensions between named reference planes in the active family",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "add_symbolic_line",
+      "description": "Create symbolic lines in the active family view",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
       "commandName": "tag_selected_doors",
       "description": "Create and place door tags only on selected doors in the current view",
       "assemblyPath": "RevitMCPCommandSet.dll"
