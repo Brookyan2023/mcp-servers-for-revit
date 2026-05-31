@@ -5,6 +5,15 @@ namespace RevitMCPCommandSet.Utils;
 
 internal static class RevitInspectionUtils
 {
+    public static ElementId FromLongId(long idValue)
+    {
+#if REVIT2024_OR_GREATER
+        return new ElementId(idValue);
+#else
+        return new ElementId(checked((int)idValue));
+#endif
+    }
+
     public static long IdValue(ElementId id)
     {
 #if REVIT2024_OR_GREATER
@@ -35,17 +44,29 @@ internal static class RevitInspectionUtils
 
     public static double ToMillimeters(double internalUnits)
     {
+#if REVIT2022_OR_GREATER
         return UnitUtils.ConvertFromInternalUnits(internalUnits, UnitTypeId.Millimeters);
+#else
+        return UnitUtils.ConvertFromInternalUnits(internalUnits, DisplayUnitType.DUT_MILLIMETERS);
+#endif
     }
 
     public static double ToSquareMeters(double internalUnits)
     {
+#if REVIT2022_OR_GREATER
         return UnitUtils.ConvertFromInternalUnits(internalUnits, UnitTypeId.SquareMeters);
+#else
+        return UnitUtils.ConvertFromInternalUnits(internalUnits, DisplayUnitType.DUT_SQUARE_METERS);
+#endif
     }
 
     public static double ToCubicMeters(double internalUnits)
     {
+#if REVIT2022_OR_GREATER
         return UnitUtils.ConvertFromInternalUnits(internalUnits, UnitTypeId.CubicMeters);
+#else
+        return UnitUtils.ConvertFromInternalUnits(internalUnits, DisplayUnitType.DUT_CUBIC_METERS);
+#endif
     }
 
     public static IList<double> ToMillimeterPoint(XYZ xyz)
@@ -105,7 +126,9 @@ internal static class RevitInspectionUtils
 
     public static Dictionary<string, object> SerializeParameter(Parameter parameter)
     {
+#if REVIT2023_OR_GREATER
         var dataType = parameter.Definition?.GetDataType();
+#endif
         return new Dictionary<string, object>
         {
             ["name"] = parameter.Definition?.Name ?? string.Empty,
@@ -114,7 +137,11 @@ internal static class RevitInspectionUtils
             ["has_value"] = parameter.HasValue,
             ["value"] = GetParameterValue(parameter),
             ["display_value"] = parameter.AsValueString(),
+#if REVIT2023_OR_GREATER
             ["data_type"] = dataType?.TypeId ?? string.Empty,
+#else
+            ["data_type"] = parameter.Definition?.ParameterType.ToString() ?? string.Empty,
+#endif
         };
     }
 
@@ -157,7 +184,7 @@ internal static class RevitInspectionUtils
                     parameter.Set(ConvertToParameterDouble(parameter, rawValue, valueUnit));
                     return true;
                 case StorageType.ElementId:
-                    parameter.Set(new ElementId(Convert.ToInt64(rawValue)));
+                    parameter.Set(FromLongId(Convert.ToInt64(rawValue)));
                     return true;
                 default:
                     error = "unsupported_parameter_storage_type";
@@ -174,6 +201,7 @@ internal static class RevitInspectionUtils
     private static double ConvertToParameterDouble(Parameter parameter, object rawValue, string valueUnit)
     {
         var numericValue = Convert.ToDouble(rawValue);
+#if REVIT2023_OR_GREATER
         var dataType = parameter.Definition?.GetDataType();
         if (dataType == null || !UnitUtils.IsMeasurableSpec(dataType)) return numericValue;
 
@@ -193,5 +221,25 @@ internal static class RevitInspectionUtils
         if (requestedUnit == "deg" || requestedUnit == "degrees") unitTypeId = UnitTypeId.Degrees;
 
         return unitTypeId == null ? numericValue : UnitUtils.ConvertToInternalUnits(numericValue, unitTypeId);
+#else
+        var parameterType = parameter.Definition?.ParameterType ?? ParameterType.Invalid;
+        var requestedUnit = (valueUnit ?? string.Empty).Trim().ToLowerInvariant();
+
+        if (requestedUnit == "internal" || requestedUnit == "internal_units") return numericValue;
+
+        DisplayUnitType? unitType = null;
+        if (parameterType == ParameterType.Length) unitType = DisplayUnitType.DUT_MILLIMETERS;
+        else if (parameterType == ParameterType.Area) unitType = DisplayUnitType.DUT_SQUARE_METERS;
+        else if (parameterType == ParameterType.Volume) unitType = DisplayUnitType.DUT_CUBIC_METERS;
+        else if (parameterType == ParameterType.Angle) unitType = DisplayUnitType.DUT_DECIMAL_DEGREES;
+
+        if (requestedUnit == "mm") unitType = DisplayUnitType.DUT_MILLIMETERS;
+        if (requestedUnit == "m") unitType = DisplayUnitType.DUT_METERS;
+        if (requestedUnit == "m2" || requestedUnit == "sqm") unitType = DisplayUnitType.DUT_SQUARE_METERS;
+        if (requestedUnit == "m3") unitType = DisplayUnitType.DUT_CUBIC_METERS;
+        if (requestedUnit == "deg" || requestedUnit == "degrees") unitType = DisplayUnitType.DUT_DECIMAL_DEGREES;
+
+        return unitType == null ? numericValue : UnitUtils.ConvertToInternalUnits(numericValue, unitType.Value);
+#endif
     }
 }

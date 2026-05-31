@@ -6,6 +6,7 @@ import {
   getDeveloperModeStatePath,
   validateCodeExecutionRequest,
 } from "../utils/developerMode.js";
+import { validateDynamicCode } from "../utils/codeExecutionValidator.js";
 
 export function registerSendCodeToRevitTool(server: McpServer) {
   const parameterValueSchema = z.union([
@@ -32,6 +33,17 @@ export function registerSendCodeToRevitTool(server: McpServer) {
         .describe(
           "Optional execution parameters that will be passed to your code"
         ),
+      revit_version: z
+        .number()
+        .int()
+        .min(2019)
+        .max(2026)
+        .optional()
+        .describe("Optional explicit Revit target version for compatibility validation."),
+      validation_mode: z
+        .enum(["strict", "lenient"])
+        .optional()
+        .describe("Validation mode. strict blocks on validation errors."),
     },
     async (args, extra) => {
       const modeBlockReason = getDeveloperModeBlockReason();
@@ -58,6 +70,30 @@ export function registerSendCodeToRevitTool(server: McpServer) {
         };
       }
 
+      const validation = validateDynamicCode(args.code, {
+        revitVersion: args.revit_version,
+        validationMode: args.validation_mode,
+      });
+
+      if (!validation.ok) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Code execution blocked by validator.\n${JSON.stringify(
+                {
+                  can_retry: true,
+                  phase: "validation",
+                  validation,
+                },
+                null,
+                2
+              )}`,
+            },
+          ],
+        };
+      }
+
       const params = {
         code: args.code,
         parameters: args.parameters || [],
@@ -72,8 +108,14 @@ export function registerSendCodeToRevitTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `Code execution successful!\nResult: ${JSON.stringify(
-                response,
+              text: `Code execution successful!\n${JSON.stringify(
+                {
+                  validation: {
+                    revitVersion: validation.revitVersion,
+                    warnings: validation.warnings,
+                  },
+                  result: response,
+                },
                 null,
                 2
               )}`,

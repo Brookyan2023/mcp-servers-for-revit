@@ -24,8 +24,7 @@ public class LoadFamilyIntoProjectEventHandler : IExternalEventHandler, IWaitabl
 
     public bool WaitForCompletion(int timeoutMilliseconds = 20000)
     {
-        _resetEvent.Reset();
-        return _resetEvent.WaitOne(timeoutMilliseconds);
+                return _resetEvent.WaitOne(timeoutMilliseconds);
     }
 
     public void Execute(UIApplication app)
@@ -128,3 +127,4 @@ public class LoadFamilyIntoProjectEventHandler : IExternalEventHandler, IWaitabl
         }
     }
 }
+

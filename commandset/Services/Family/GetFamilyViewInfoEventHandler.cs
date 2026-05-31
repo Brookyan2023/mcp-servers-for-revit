@@ -11,8 +11,7 @@ public class GetFamilyViewInfoEventHandler : IExternalEventHandler, IWaitableExt
 
     public bool WaitForCompletion(int timeoutMilliseconds = 10000)
     {
-        _resetEvent.Reset();
-        return _resetEvent.WaitOne(timeoutMilliseconds);
+                return _resetEvent.WaitOne(timeoutMilliseconds);
     }
 
     public void Execute(UIApplication app)
@@ -51,3 +50,4 @@ public class GetFamilyViewInfoEventHandler : IExternalEventHandler, IWaitableExt
 
     public string GetName() => "Get Family View Info";
 }
+

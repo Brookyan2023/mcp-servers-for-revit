@@ -20,8 +20,7 @@ public class AddFamilyParametersEventHandler : IExternalEventHandler, IWaitableE
 
     public bool WaitForCompletion(int timeoutMilliseconds = 15000)
     {
-        _resetEvent.Reset();
-        return _resetEvent.WaitOne(timeoutMilliseconds);
+                return _resetEvent.WaitOne(timeoutMilliseconds);
     }
 
     public void Execute(UIApplication app)
@@ -101,3 +100,4 @@ public class AddFamilyParametersEventHandler : IExternalEventHandler, IWaitableE
         return null;
     }
 }
+

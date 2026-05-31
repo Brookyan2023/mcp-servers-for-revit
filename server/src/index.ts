@@ -2,6 +2,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { registerTools } from "./tools/register.js";
+import { refreshDeveloperModeIfEnabled } from "./utils/developerMode.js";
 
 // 创建服务器实例
 const server = new McpServer({
@@ -11,6 +12,8 @@ const server = new McpServer({
 
 // 启动服务器
 async function main() {
+  refreshDeveloperModeIfEnabled();
+
   // 注册工具
   await registerTools(server);
 

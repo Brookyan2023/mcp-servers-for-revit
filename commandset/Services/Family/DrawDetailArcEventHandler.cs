@@ -21,8 +21,7 @@ public class DrawDetailArcEventHandler : IExternalEventHandler, IWaitableExterna
 
     public bool WaitForCompletion(int timeoutMilliseconds = 15000)
     {
-        _resetEvent.Reset();
-        return _resetEvent.WaitOne(timeoutMilliseconds);
+                return _resetEvent.WaitOne(timeoutMilliseconds);
     }
 
     public void Execute(UIApplication app)
@@ -41,7 +40,11 @@ public class DrawDetailArcEventHandler : IExternalEventHandler, IWaitableExterna
             foreach (var item in Arcs)
             {
                 var center = JZPoint.ToXYZ(item.Center);
+#if REVIT2022_OR_GREATER
                 var radius = UnitUtils.ConvertToInternalUnits(item.Radius, UnitTypeId.Millimeters);
+#else
+                var radius = UnitUtils.ConvertToInternalUnits(item.Radius, DisplayUnitType.DUT_MILLIMETERS);
+#endif
                 var startAngle = item.StartAngle * Math.PI / 180.0;
                 var endAngle = item.EndAngle * Math.PI / 180.0;
 
@@ -75,3 +78,4 @@ public class DrawDetailArcEventHandler : IExternalEventHandler, IWaitableExterna
 
     public string GetName() => "Draw Detail Arc";
 }
+

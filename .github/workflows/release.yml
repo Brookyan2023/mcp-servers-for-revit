@@ -44,6 +44,9 @@ jobs:
       # The commandset's DeployCommandSet target automatically copies
       # its output into the plugin's AddIn layout.
       # ---------------------------------------------------------------
+      - name: Build Revit 2019 (.NET Framework 4.8)
+        run: msbuild mcp-servers-for-revit.sln -p:Configuration="Release R19" -restore
+
       - name: Build Revit 2020 (.NET Framework 4.8)
         run: msbuild mcp-servers-for-revit.sln -p:Configuration="Release R20" -restore
 
@@ -77,6 +80,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path $outputDir
 
           $revitVersions = @(
+            @{ Config = "Release R19"; Year = "2019" },
             @{ Config = "Release R20"; Year = "2020" },
             @{ Config = "Release R21"; Year = "2021" },
             @{ Config = "Release R22"; Year = "2022" },

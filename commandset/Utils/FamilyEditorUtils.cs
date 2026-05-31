@@ -123,7 +123,7 @@ internal static class FamilyEditorUtils
     {
         if (typeId > 0)
         {
-            var type = doc.GetElement(new ElementId(typeId)) as TextNoteType;
+            var type = doc.GetElement(RevitInspectionUtils.FromLongId(typeId)) as TextNoteType;
             if (type != null)
                 return type;
         }
@@ -259,13 +259,14 @@ internal static class FamilyEditorUtils
                 familyManager.Set(parameter, ConvertToInternalDouble(definition, Convert.ToDouble(value)));
                 break;
             case StorageType.ElementId:
-                familyManager.Set(parameter, new ElementId(Convert.ToInt64(value)));
+                familyManager.Set(parameter, RevitInspectionUtils.FromLongId(Convert.ToInt64(value)));
                 break;
         }
     }
 
     private static double ConvertToInternalDouble(FamilyParameterDefinition definition, double value)
     {
+#if REVIT2022_OR_GREATER
         return Normalize(definition.DataType) switch
         {
             "angle" => UnitUtils.ConvertToInternalUnits(value, UnitTypeId.Degrees),
@@ -273,6 +274,15 @@ internal static class FamilyEditorUtils
             "length" => UnitUtils.ConvertToInternalUnits(value, UnitTypeId.Millimeters),
             _ => value,
         };
+#else
+        return Normalize(definition.DataType) switch
+        {
+            "angle" => UnitUtils.ConvertToInternalUnits(value, DisplayUnitType.DUT_DECIMAL_DEGREES),
+            "area" => UnitUtils.ConvertToInternalUnits(value, DisplayUnitType.DUT_SQUARE_METERS),
+            "length" => UnitUtils.ConvertToInternalUnits(value, DisplayUnitType.DUT_MILLIMETERS),
+            _ => value,
+        };
+#endif
     }
 
     public static string Normalize(string value)

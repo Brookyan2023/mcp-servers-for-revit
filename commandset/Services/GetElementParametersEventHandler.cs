@@ -32,7 +32,7 @@ public class GetElementParametersEventHandler : IExternalEventHandler, IWaitable
         try
         {
             var doc = app.ActiveUIDocument.Document;
-            var element = doc.GetElement(new ElementId(ElementId));
+            var element = doc.GetElement(RevitInspectionUtils.FromLongId(ElementId));
             if (element == null) throw new InvalidOperationException("Element not found");
 
             var rows = new List<Dictionary<string, object>>();

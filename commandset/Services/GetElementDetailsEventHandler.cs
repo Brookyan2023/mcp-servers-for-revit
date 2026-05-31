@@ -29,7 +29,7 @@ public class GetElementDetailsEventHandler : IExternalEventHandler, IWaitableExt
         {
             var uiDoc = app.ActiveUIDocument;
             var doc = uiDoc.Document;
-            var element = doc.GetElement(new ElementId(ElementId));
+            var element = doc.GetElement(RevitInspectionUtils.FromLongId(ElementId));
             if (element == null) throw new InvalidOperationException("Element not found");
 
             var type = doc.GetElement(element.GetTypeId());

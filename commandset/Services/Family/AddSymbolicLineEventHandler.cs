@@ -21,8 +21,7 @@ public class AddSymbolicLineEventHandler : IExternalEventHandler, IWaitableExter
 
     public bool WaitForCompletion(int timeoutMilliseconds = 15000)
     {
-        _resetEvent.Reset();
-        return _resetEvent.WaitOne(timeoutMilliseconds);
+                return _resetEvent.WaitOne(timeoutMilliseconds);
     }
 
     public void Execute(UIApplication app)
@@ -69,3 +68,4 @@ public class AddSymbolicLineEventHandler : IExternalEventHandler, IWaitableExter
 
     public string GetName() => "Add Symbolic Line";
 }
+

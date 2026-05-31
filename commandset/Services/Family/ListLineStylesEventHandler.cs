@@ -12,8 +12,7 @@ public class ListLineStylesEventHandler : IExternalEventHandler, IWaitableExtern
 
     public bool WaitForCompletion(int timeoutMilliseconds = 10000)
     {
-        _resetEvent.Reset();
-        return _resetEvent.WaitOne(timeoutMilliseconds);
+                return _resetEvent.WaitOne(timeoutMilliseconds);
     }
 
     public void Execute(UIApplication app)
@@ -50,3 +49,4 @@ public class ListLineStylesEventHandler : IExternalEventHandler, IWaitableExtern
 
     public string GetName() => "List Line Styles";
 }
+

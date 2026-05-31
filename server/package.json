@@ -10,7 +10,7 @@
     "scripts":  {
                     "clean":  "rimraf build",
                     "prebuild":  "npm run clean",
-                    "build":  "tsc",
+                    "build":  "tsc && node -e \"const fs=require('fs'); fs.cpSync('src/config','build/config',{recursive:true});\"",
                     "prepublishOnly":  "npm run build"
                 },
     "files":  [

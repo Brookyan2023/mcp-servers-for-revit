@@ -34,7 +34,7 @@ public class SetElementParameterEventHandler : IExternalEventHandler, IWaitableE
         try
         {
             var doc = app.ActiveUIDocument.Document;
-            var element = doc.GetElement(new ElementId(ElementId));
+            var element = doc.GetElement(RevitInspectionUtils.FromLongId(ElementId));
             if (element == null) throw new InvalidOperationException("Element not found");
 
             var parameter = RevitInspectionUtils.FindParameter(element, ParameterName);

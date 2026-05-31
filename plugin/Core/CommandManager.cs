@@ -139,27 +139,45 @@ namespace revit_mcp_plugin.Core
 
                             // 检查命令是否实现了可初始化接口
                             // Check whether the command implements the initializable interface.
+                            var uiAppConstructor = type.GetConstructor(new[] { typeof(UIApplication) });
+                            var parameterlessConstructor = type.GetConstructor(Type.EmptyTypes);
+
                             if (typeof(IRevitCommandInitializable).IsAssignableFrom(type))
                             {
-                                // 创建实例并初始化
-                                // Create instance and initialize.
-                                command = (IRevitCommand)Activator.CreateInstance(type);
+                                // 创建实例并初始化：优先无参构造，其次回退到 UIApplication 构造。
+                                // Create + initialize: prefer parameterless ctor, then fallback to UIApplication ctor.
+                                if (parameterlessConstructor != null)
+                                {
+                                    command = (IRevitCommand)Activator.CreateInstance(type);
+                                }
+                                else if (uiAppConstructor != null)
+                                {
+                                    command = (IRevitCommand)uiAppConstructor.Invoke(new object[] { _uiApplication });
+                                }
+                                else
+                                {
+                                    throw new MissingMethodException($"No usable constructor found for {type.FullName}");
+                                }
+
                                 ((IRevitCommandInitializable)command).Initialize(_uiApplication);
                             }
                             else
                             {
                                 // 尝试查找接受 UIApplication 的构造函数
                                 // Try searching for constructors that accept UIApplication.
-                                var constructor = type.GetConstructor(new[] { typeof(UIApplication) });
-                                if (constructor != null)
+                                if (uiAppConstructor != null)
                                 {
-                                    command = (IRevitCommand)constructor.Invoke(new object[] { _uiApplication });
+                                    command = (IRevitCommand)uiAppConstructor.Invoke(new object[] { _uiApplication });
                                 }
-                                else
+                                else if (parameterlessConstructor != null)
                                 {
                                     // 使用无参构造函数
                                     // Use a parameterless constructor.
                                     command = (IRevitCommand)Activator.CreateInstance(type);
+                                }
+                                else
+                                {
+                                    throw new MissingMethodException($"No usable constructor found for {type.FullName}");
                                 }
                             }
 
@@ -168,7 +186,7 @@ namespace revit_mcp_plugin.Core
                             if (command.CommandName == config.CommandName)
                             {
                                 _commandRegistry.RegisterCommand(command);
-                                _logger.Info("创建命令实例失败 [{0}]: {1}\nFailed to create command instance [{0}]: {1}",
+                                _logger.Info("创建命令实例成功 [{0}]: {1}\nCreated command instance successfully [{0}]: {1}",
                                     command.CommandName, Path.GetFileName(assemblyPath));
                                 break; // 找到匹配的命令后退出循环 - Exit the loop after finding a matching command.
                             }

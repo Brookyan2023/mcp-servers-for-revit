@@ -1,0 +1,71 @@
+{
+  "defaultValidationMode": "strict",
+  "defaultRevitVersion": 2026,
+  "rules": [
+    {
+      "id": "SECURITY_BLOCKED_API",
+      "description": "Block dangerous APIs and namespaces for dynamic code execution.",
+      "severity": "error",
+      "category": "security",
+      "versionRange": { "min": 2019, "max": 2026 },
+      "patterns": [
+        "System\\.IO",
+        "System\\.Net",
+        "System\\.Diagnostics",
+        "System\\.Reflection",
+        "Microsoft\\.Win32",
+        "DllImport",
+        "Process\\.",
+        "File\\.",
+        "Directory\\.",
+        "HttpClient",
+        "WebClient",
+        "Socket",
+        "Registry",
+        "Assembly\\.",
+        "AppDomain",
+        "Environment\\.Exit"
+      ],
+      "message": "Code references blocked security-sensitive APIs.",
+      "suggestion": "Use static MCP tools for file/network/system tasks; keep dynamic code limited to Revit API model operations."
+    },
+    {
+      "id": "R19_R21_FORGE_TYPE_API",
+      "description": "ForgeTypeId/SpecTypeId/UnitTypeId are not supported in Revit 2019-2021 API surfaces.",
+      "severity": "error",
+      "category": "compatibility",
+      "versionRange": { "min": 2019, "max": 2021 },
+      "patterns": [
+        "\\bForgeTypeId\\b",
+        "\\bSpecTypeId\\b",
+        "\\bUnitTypeId\\b"
+      ],
+      "message": "Detected API usage not compatible with Revit 2019-2021.",
+      "suggestion": "Use DisplayUnitType/ParameterType/BuiltInParameterGroup compatibility APIs for Revit 2019-2021."
+    },
+    {
+      "id": "R22_PLUS_LEGACY_UNIT_API",
+      "description": "Legacy unit APIs may be deprecated for modern Revit versions.",
+      "severity": "warning",
+      "category": "compatibility",
+      "versionRange": { "min": 2022, "max": 2026 },
+      "patterns": [
+        "\\bDisplayUnitType\\b",
+        "\\bParameterType\\b"
+      ],
+      "message": "Legacy unit/parameter APIs detected for Revit 2022+.",
+      "suggestion": "Prefer UnitTypeId/SpecTypeId/ForgeTypeId where possible for Revit 2022+."
+    },
+    {
+      "id": "MISSING_REVIT_NAMESPACE_HINT",
+      "description": "Dynamic code should normally reference Autodesk.Revit namespaces.",
+      "severity": "warning",
+      "category": "quality",
+      "versionRange": { "min": 2019, "max": 2026 },
+      "patterns": [],
+      "specialCheck": "missingRevitNamespace",
+      "message": "No Autodesk.Revit namespace reference detected.",
+      "suggestion": "Ensure dynamic code is Revit-focused and uses Autodesk.Revit.DB/UI APIs where needed."
+    }
+  ]
+}
