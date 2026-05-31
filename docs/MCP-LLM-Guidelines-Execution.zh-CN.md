@@ -50,7 +50,7 @@
 ## I. 参考与扩展
 - 详细规则见完整版：`docs/MCP-LLM-Guidelines.zh-CN.md`
 - 代码校验规则：`server/src/config/code-execution-rules.json`，构建后必须存在于 `server/build/config/`。
-- R19 本地验证需确认 DLL 发布到 `revit_mcp_plugin/Commands/RevitMCPCommandSet/2019/`。
+- R19 本地验证需确认 plugin DLL 在 `revit_mcp_plugin/`，commandset DLL 在 `revit_mcp_plugin/Commands/RevitMCPCommandSet/2019/`。
 
 ## J. send_code_to_revit 不可用排障
 - 典型报错：`Code execution is only available through the 'revit-mcp-dev' MCP server profile.`
