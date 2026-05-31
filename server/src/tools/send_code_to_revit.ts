@@ -20,12 +20,18 @@ export function registerSendCodeToRevitTool(server: McpServer) {
 
   server.tool(
     "send_code_to_revit",
-    "Send C# code to Revit for execution. The code will be inserted into a template with access to the Revit Document and parameters. Your code should be written to work within the Execute method of the template.",
+    "Send C# code to Revit for execution. The code is inserted into a template with access to document/doc/Document, uiapp/uiApp, uidoc/uiDoc, activeView, and parameters. Prefer existing MCP tools first; use this only for uncovered operations.",
     {
       code: z
         .string()
         .describe(
           "The C# code to execute in Revit. This code will be inserted into the Execute method of a template with access to Document and parameters."
+        ),
+      transaction_mode: z
+        .enum(["auto", "none", "transaction"])
+        .optional()
+        .describe(
+          "Transaction handling. Use none for read-only queries, transaction for model mutations, auto lets Revit MCP choose."
         ),
       parameters: z
         .array(parameterValueSchema)
@@ -97,6 +103,7 @@ export function registerSendCodeToRevitTool(server: McpServer) {
       const params = {
         code: args.code,
         parameters: args.parameters || [],
+        transaction_mode: args.transaction_mode || "auto",
       };
 
       try {

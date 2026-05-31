@@ -1,5 +1,6 @@
 using System.IO;
 using System.Reflection;
+using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -8,32 +9,28 @@ using RevitMCPSDK.API.Interfaces;
 
 namespace RevitMCPCommandSet.Commands.ExecuteDynamicCode
 {
-    /// <summary>
-    /// 处理代码执行的外部事件处理器
-    /// </summary>
     public class ExecuteCodeEventHandler : IExternalEventHandler, IWaitableExternalEventHandler
     {
-        // 代码执行参数
         private string _generatedCode;
         private object[] _executionParameters;
+        private string _transactionMode = "auto";
 
-        // 执行结果信息
         public ExecutionResultInfo ResultInfo { get; private set; }
 
-        // 状态同步对象
         public bool TaskCompleted { get; private set; }
         private readonly ManualResetEvent _resetEvent = new ManualResetEvent(false);
 
-        // 设置要执行的代码和参数
-        public void SetExecutionParameters(string code, object[] parameters = null)
+        public void SetExecutionParameters(string code, object[] parameters = null, string transactionMode = "auto")
         {
             _generatedCode = code;
             _executionParameters = parameters ?? Array.Empty<object>();
+            _transactionMode = string.IsNullOrWhiteSpace(transactionMode)
+                ? "auto"
+                : transactionMode.Trim().ToLowerInvariant();
             TaskCompleted = false;
             _resetEvent.Reset();
         }
 
-        // 等待执行完成 - IWaitableExternalEventHandler接口实现
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
             _resetEvent.Reset();
@@ -44,21 +41,41 @@ namespace RevitMCPCommandSet.Commands.ExecuteDynamicCode
         {
             try
             {
-                var doc = app.ActiveUIDocument.Document;
+                var doc = app.ActiveUIDocument?.Document;
+                if (doc == null)
+                {
+                    throw new InvalidOperationException("No active Revit document.");
+                }
+
                 ResultInfo = new ExecutionResultInfo();
 
-                using (var transaction = new Transaction(doc, "执行AI代码"))
+                if (ShouldUseTransaction(_transactionMode))
                 {
-                    transaction.Start();
+                    using (var transaction = new Transaction(doc, "Execute AI Code"))
+                    {
+                        transaction.Start();
 
-                    // 动态编译执行代码
+                        var result = CompileAndExecuteCode(
+                            code: _generatedCode,
+                            app: app,
+                            doc: doc,
+                            parameters: _executionParameters
+                        );
+
+                        transaction.Commit();
+
+                        ResultInfo.Success = true;
+                        ResultInfo.Result = JsonConvert.SerializeObject(result);
+                    }
+                }
+                else
+                {
                     var result = CompileAndExecuteCode(
                         code: _generatedCode,
+                        app: app,
                         doc: doc,
                         parameters: _executionParameters
                     );
-
-                    transaction.Commit();
 
                     ResultInfo.Success = true;
                     ResultInfo.Result = JsonConvert.SerializeObject(result);
@@ -67,7 +84,7 @@ namespace RevitMCPCommandSet.Commands.ExecuteDynamicCode
             catch (Exception ex)
             {
                 ResultInfo.Success = false;
-                ResultInfo.ErrorMessage = $"执行失败: {ex.Message}";
+                ResultInfo.ErrorMessage = $"Execution failed: {UnwrapException(ex).Message}";
             }
             finally
             {
@@ -76,9 +93,23 @@ namespace RevitMCPCommandSet.Commands.ExecuteDynamicCode
             }
         }
 
-        private object CompileAndExecuteCode(string code, Document doc, object[] parameters)
+        private static bool ShouldUseTransaction(string transactionMode)
         {
-            // 包装代码以规范入口点
+            return transactionMode == "transaction" || transactionMode == "auto";
+        }
+
+        private static Exception UnwrapException(Exception ex)
+        {
+            while (ex is TargetInvocationException && ex.InnerException != null)
+            {
+                ex = ex.InnerException;
+            }
+
+            return ex;
+        }
+
+        private object CompileAndExecuteCode(string code, UIApplication app, Document doc, object[] parameters)
+        {
             var wrappedCode = $@"
 using System;
 using System.Linq;
@@ -90,9 +121,15 @@ namespace AIGeneratedCode
 {{
     public static class CodeExecutor
     {{
-        public static object Execute(Document document, object[] parameters)
+        public static object Execute(UIApplication uiapp, Document document, object[] parameters)
         {{
-            // 用户代码入口
+            var uiApp = uiapp;
+            var uidoc = uiapp.ActiveUIDocument;
+            var uiDoc = uidoc;
+            var doc = document;
+            var Document = document;
+            var activeView = document.ActiveView;
+
             {code}
         }}
     }}
@@ -100,14 +137,12 @@ namespace AIGeneratedCode
 
             var syntaxTree = CSharpSyntaxTree.ParseText(wrappedCode);
 
-            // 添加必要的程序集引用（引用所有已加载的程序集）
             var references = AppDomain.CurrentDomain.GetAssemblies()
                 .Where(a => !a.IsDynamic && !string.IsNullOrEmpty(a.Location))
                 .Select(a => MetadataReference.CreateFromFile(a.Location))
                 .Cast<MetadataReference>()
                 .ToList();
 
-            // 编译代码
             var compilation = CSharpCompilation.Create(
                 "AIGeneratedCode",
                 syntaxTrees: new[] { syntaxTree },
@@ -119,32 +154,29 @@ namespace AIGeneratedCode
             {
                 var result = compilation.Emit(ms);
 
-                // 处理编译结果
                 if (!result.Success)
                 {
                     var errors = string.Join("\n", result.Diagnostics
                         .Where(d => d.Severity == DiagnosticSeverity.Error)
-                        .Select(d => $"Line {d.Location.GetLineSpan().StartLinePosition.Line}: {d.GetMessage()}"));
-                    throw new Exception($"代码编译错误:\n{errors}");
+                        .Select(d => $"Line {d.Location.GetLineSpan().StartLinePosition.Line + 1}: {d.GetMessage()}"));
+                    throw new Exception($"Code compilation error:\n{errors}");
                 }
 
-                // 反射调用执行方法
                 ms.Seek(0, SeekOrigin.Begin);
                 var assembly = Assembly.Load(ms.ToArray());
                 var executorType = assembly.GetType("AIGeneratedCode.CodeExecutor");
                 var executeMethod = executorType.GetMethod("Execute");
 
-                return executeMethod.Invoke(null, new object[] { doc, parameters });
+                return executeMethod.Invoke(null, new object[] { app, doc, parameters });
             }
         }
 
         public string GetName()
         {
-            return "执行AI代码";
+            return "Execute AI Code";
         }
     }
 
-    // 执行结果数据结构
     public class ExecutionResultInfo
     {
         [JsonProperty("success")]

@@ -37,6 +37,8 @@
 
 ## G. send_code_to_revit 强制流程
 - 先通过工具层校验器，再决定是否执行。
+- 代码上下文可用：`document`/`doc`/`Document`、`uiapp`/`uiApp`、`uidoc`/`uiDoc`、`activeView`、`parameters`。
+- 只读查询用 `transaction_mode=none`；模型修改用 `transaction_mode=transaction` 或默认 `auto`。
 - 校验失败返回结构化信息后，允许 LLM 重写并重提。
 - 未通过校验前禁止执行动态代码。
 
