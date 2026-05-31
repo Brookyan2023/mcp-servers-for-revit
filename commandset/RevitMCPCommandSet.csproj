@@ -85,10 +85,10 @@
         <Copy SourceFiles="@(CommandSetBinaries)" DestinationFolder="$(CommandSetPluginDir)$(RevitVersion)\" />
         <Copy SourceFiles="@(CommandJsonFile)" DestinationFolder="$(CommandSetPluginDir)" />
 
-        <!-- Debug only: Copy to Revit Addins folder for local development -->
-        <MakeDir Directories="$(RevitAddinsDir)$(RevitVersion)" Condition="$(Configuration.Contains('Debug'))" />
-        <Copy SourceFiles="@(CommandSetBinaries)" DestinationFolder="$(RevitAddinsDir)$(RevitVersion)\" Condition="$(Configuration.Contains('Debug'))" />
-        <Copy SourceFiles="@(CommandJsonFile)" DestinationFolder="$(RevitAddinsDir)" Condition="$(Configuration.Contains('Debug'))" />
+        <!-- Copy to Revit Addins folder for local development and same-machine release validation. -->
+        <MakeDir Directories="$(RevitAddinsDir)$(RevitVersion)" />
+        <Copy SourceFiles="@(CommandSetBinaries)" DestinationFolder="$(RevitAddinsDir)$(RevitVersion)\" />
+        <Copy SourceFiles="@(CommandJsonFile)" DestinationFolder="$(RevitAddinsDir)" />
     </Target>
 
 </Project>
